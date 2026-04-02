@@ -1,0 +1,198 @@
+---
+title: "How it works"
+description: "A walkthrough of the full data pipeline: from GitHub GraphQL API queries to ranked markdown files, CSV snapshots, and an automated daily commit."
+---
+
+GitHub Ranking runs a single Python script — `source/process.py` — that queries the GitHub GraphQL API, parses the results, writes markdown ranking files, saves a CSV snapshot, and commits everything back to the repository. The entire pipeline is driven by two classes: `ProcessorGQL` and `WriteFile`.
+
+## The pipeline
+
+<Steps>
+  <Step title="Build the GraphQL query">
+    `ProcessorGQL.__init__` constructs three query templates from a shared `gql_format` string:
+
+    ```python
+    self.gql_format = """query{
+        search(query: "%s", type: REPOSITORY, first:%d %s) {
+          pageInfo { endCursor }
+                    edges {
+                        node {
+                            ...on Repository {
+                                id
+                                name
+                                url
+                                forkCount
+                                stargazerCount
+                                owner {
+                                    login
+                                }
+                                description
+                                pushedAt
+                                primaryLanguage {
+                                    name
+                                }
+                                openIssues: issues(states: OPEN) {
+                                    totalCount
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """
+    ```
+
+    The three specialised queries are:
+
+    | Variable | Search filter | Purpose |
+    |---|---|---|
+    | `gql_stars` | `stars:>1000 sort:stars` | Top repositories by star count across all languages |
+    | `gql_forks` | `forks:>1000 sort:forks` | Top repositories by fork count across all languages |
+    | `gql_stars_lang` | `language:%s stars:>0 sort:stars` | Top repositories by stars for a specific language |
+
+  </Step>
+  <Step title="Paginate through results">
+    Each query is executed in pages. `ProcessorGQL` uses `bulk_size = 50` results per page and `bulk_count = 2` pages per query, giving **100 results per category**.
+
+    ```python
+    self.bulk_size = 50
+    self.bulk_count = 2
+    ```
+
+    The `get_repos` method drives pagination by reading the `endCursor` from `pageInfo` and passing it as the `after` cursor argument in the next request:
+
+    ```python
+    def get_repos(self, qql):
+        cursor = ''
+        repos = []
+        for i in range(0, self.bulk_count):
+            repos_gql = get_graphql_data(qql % cursor)
+            cursor = ', after:"' + repos_gql["data"]["search"]["pageInfo"]["endCursor"] + '"'
+            repos += self.parse_gql_result(repos_gql)
+        return repos
+    ```
+
+    `get_graphql_data` in `common.py` POSTs each query to `https://api.github.com/graphql` with a `bearer` token, retries up to 5 times on failure, and sleeps 2 seconds between requests to stay within rate limits.
+
+    <Note>
+      The GitHub GraphQL API has a rate limit of **5000 points per hour**. Each search query costs a small number of points. With 34 languages plus the two global queries, the pipeline makes 72 paginated requests in total (36 queries × 2 pages).
+    </Note>
+  </Step>
+  <Step title="Parse the API response">
+    `parse_gql_result` extracts the fields needed for ranking from each repository node in the GraphQL response:
+
+    ```python
+    @staticmethod
+    def parse_gql_result(result):
+        res = []
+        for repo in result["data"]["search"]["edges"]:
+            repo_data = repo['node']
+            res.append({
+                'name': repo_data['name'],
+                'stargazers_count': repo_data['stargazerCount'],
+                'forks_count': repo_data['forkCount'],
+                'language': repo_data['primaryLanguage']['name'] if repo_data['primaryLanguage'] is not None else None,
+                'html_url': repo_data['url'],
+                'owner': {
+                    'login': repo_data['owner']['login'],
+                },
+                'open_issues_count': repo_data['openIssues']['totalCount'],
+                'pushed_at': repo_data['pushedAt'],
+                'description': repo_data['description']
+            })
+        return res
+    ```
+
+    The resulting list of dicts maps directly to the output columns:
+
+    ```python
+    self.col = ['rank', 'item', 'repo_name', 'stars', 'forks', 'language',
+                'repo_url', 'username', 'issues', 'last_commit', 'description']
+    ```
+  </Step>
+  <Step title="Generate markdown ranking files">
+    `WriteFile.write_readme_lang_md` iterates over every category (Most Stars, Most Forks, and each of the 34 languages) and writes two markdown files for each:
+
+    - **`README.md`** — the top 10 repositories for each category, with a link to the full list
+    - **`Top100/<category>.md`** — the full top 100 for that category
+
+    Each file contains a markdown table with columns for ranking, project name, stars, forks, language, open issues, description, and last commit date.
+
+    <Note>
+      The `write_head_contents` method writes the README header and table of contents first, stamping the UTC timestamp at the time of the run. All subsequent category sections are appended to the same file.
+    </Note>
+  </Step>
+  <Step title="Save a CSV snapshot">
+    `WriteFile.save_to_csv` consolidates all category dataframes into a single `pandas` DataFrame and saves it to `Data/github-ranking-YYYY-MM-DD.csv`.
+
+    ```python
+    def save_to_csv(self):
+        df_all = pd.DataFrame(columns=self.col)
+        for repo in self.repo_list:
+            df_repos = self.repo_to_df(repos=repo["data"], item=repo["item"])
+            df_all = df_all.append(df_repos, ignore_index=True)
+
+        save_date = datetime.utcnow().strftime("%Y-%m-%d")
+        os.makedirs('../Data', exist_ok=True)
+        df_all.to_csv('../Data/github-ranking-' + save_date + '.csv', index=False, encoding='utf-8')
+    ```
+
+    The `item` column records which category each row belongs to (e.g. `top-100-stars`, `top-100-forks`, or a language name like `Python`), making it straightforward to filter the CSV by category.
+  </Step>
+  <Step title="Commit and push via cron">
+    `auto_run.sh` is the entry point for the daily automation. It is scheduled with `crontab` to run at noon every day:
+
+    ```bash
+    # crontab entry
+    0 12 * * * nohup sh /home/li/code/github/Github-Ranking/auto_run.sh >> /home/li/tmp/Github-Ranking.log 2>&1 &
+    ```
+
+    The script pulls the latest code, activates the Python environment, runs the pipeline, then stages, commits, and pushes all changes:
+
+    ```bash
+    #!/bin/sh
+    cd /home/li/code/github/Github-Ranking
+    git pull
+    source /home/li/tf36/bin/activate
+    python source/process.py
+    git add .
+    today=`date +"%Y-%m-%d"`
+    git commit -m "auto update $today"
+    git push origin master
+    ```
+
+    Every daily run produces a commit whose message follows the format `auto update YYYY-MM-DD`.
+  </Step>
+</Steps>
+
+## Class structure
+
+The pipeline is split across two classes in `source/process.py`:
+
+**`ProcessorGQL`** — responsible for data collection
+
+- Holds the `gql_format` template and the three query variants (`gql_stars`, `gql_forks`, `gql_stars_lang`)
+- `get_repos(qql)` — paginates through `bulk_count` pages of `bulk_size` results each
+- `get_all_repos()` — orchestrates all queries: stars, forks, and all 34 languages
+- `parse_gql_result(result)` — static method that extracts repository fields from a raw GraphQL response
+
+**`WriteFile`** — responsible for output
+
+- Accepts the three result sets returned by `get_all_repos()`
+- `write_head_contents()` — writes the README header with the current UTC timestamp
+- `write_readme_lang_md()` — writes the top-10 entries in `README.md` and the full top-100 files in `Top100/`
+- `repo_to_df(repos, item)` — converts a list of repo dicts into a `pandas` DataFrame
+- `save_to_csv()` — merges all DataFrames and saves the dated CSV snapshot
+
+## Dependencies
+
+```text
+pandas==0.24.1
+requests==2.27.1
+```
+
+Both dependencies are declared in `requirements.txt`. The `requests` library handles all HTTP communication with the GitHub GraphQL API, and `pandas` is used solely for assembling and exporting the CSV snapshot.
+
+<Warning>
+  The pipeline reads a GitHub personal access token from `access_token.txt` in the repository root. This file is not committed to the repository. You must create it yourself before running the script. See [Self-hosting setup](/self-hosting/setup) for details.
+</Warning>

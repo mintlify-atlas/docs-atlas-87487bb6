@@ -1,0 +1,69 @@
+---
+title: "Automation"
+description: "Schedule daily ranking updates using a cron job and the included auto_run.sh script."
+---
+
+The repository includes `auto_run.sh`, a shell script that pulls the latest changes, runs the ranking pipeline, and commits and pushes the results — designed to be executed by a cron job once per day.
+
+## The auto_run.sh script
+
+```bash
+#!/bin/sh
+# crontab auto run this file
+# crontab command:
+# 0 12 * * * nohup sh /home/li/code/github/Github-Ranking/auto_run.sh >> /home/li/tmp/Github-Ranking.log 2>&1 &
+
+# show run time
+echo -e "\n----------Run Time:----------"
+date
+cd /home/li/code/github/Github-Ranking
+git pull
+source /home/li/tf36/bin/activate
+python source/process.py
+git add .
+today=`date +"%Y-%m-%d"`
+git commit -m "auto update $today"
+git push origin master
+```
+
+### What each step does
+
+| Step | Command | Description |
+|------|---------|-------------|
+| 1 | `date` | Prints the current timestamp to the log for traceability |
+| 2 | `git pull` | Pulls the latest changes from the remote repository |
+| 3 | `source .../activate` | Activates the Python virtual environment |
+| 4 | `python source/process.py` | Runs the ranking pipeline and updates all output files |
+| 5 | `git add .` | Stages all updated files (`README.md`, `Top100/`, `Data/`) |
+| 6 | `git commit -m "auto update $today"` | Commits with a date-stamped message in the format `auto update YYYY-MM-DD` |
+| 7 | `git push origin master` | Pushes the commit to the remote repository |
+
+## Setting up the cron job
+
+Open your crontab for editing:
+
+```bash
+crontab -e
+```
+
+Add the following line, adjusting the paths to match your server:
+
+```bash
+0 12 * * * nohup sh /home/li/code/github/Github-Ranking/auto_run.sh >> /home/li/tmp/Github-Ranking.log 2>&1 &
+```
+
+### Cron expression breakdown
+
+| Field | Value | Meaning |
+|-------|-------|---------|
+| Minute | `0` | At minute 0 |
+| Hour | `12` | At 12:00 UTC (noon) |
+| Day of month | `*` | Every day |
+| Month | `*` | Every month |
+| Day of week | `*` | Every day of the week |
+
+The job runs once per day at **noon UTC**. `nohup` keeps the process running after the cron session ends, and output is appended to the specified log file.
+
+<Tip>
+  Adjust the cron schedule and all hardcoded paths (`/home/li/code/github/Github-Ranking`, `/home/li/tf36/bin/activate`, `/home/li/tmp/Github-Ranking.log`) to match the actual locations on your server before activating the cron job.
+</Tip>

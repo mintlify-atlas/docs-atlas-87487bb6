@@ -1,0 +1,124 @@
+---
+title: "GitHub API"
+description: "How GitHub Ranking uses the GitHub GraphQL API v4 to fetch repository data."
+---
+
+GitHub Ranking uses the **GitHub GraphQL API v4** (not the REST API) to fetch repository data. GraphQL allows the script to request exactly the fields it needs in a single round-trip and supports cursor-based pagination for retrieving up to 100 results per category.
+
+## Endpoint
+
+All requests are sent as `POST` to:
+
+```
+https://api.github.com/graphql
+```
+
+Requests are authenticated with a `bearer` token read from `access_token.txt`.
+
+<Note>
+  `access_token.txt` must be placed in the **repo root** — one directory above `source/`. The script opens the file using the path `../access_token.txt` relative to the `source/` working directory.
+</Note>
+
+## Rate limits
+
+The GraphQL API allows **5,000 points per hour** per authenticated token. With `bulk_size = 50` and `bulk_count = 2`, the script makes 2 requests per category. Across all 36 categories (stars, forks, and 34 languages), this totals **72 requests** per run — well within the hourly limit.
+
+### Checking your rate limit
+
+```bash
+curl -H "Authorization: bearer YOUR_ACCESS_TOKEN" \
+  -X POST \
+  -d '{"query": "{ rateLimit { limit cost remaining resetAt used } }"}' \
+  https://api.github.com/graphql
+```
+
+## Query types
+
+The `ProcessorGQL` class defines three query patterns:
+
+| Name | Search string | Description |
+|------|--------------|-------------|
+| `gql_stars` | `stars:>1000 sort:stars` | Globally most-starred repositories |
+| `gql_forks` | `forks:>1000 sort:forks` | Globally most-forked repositories |
+| `gql_stars_lang` | `language:{lang} stars:>0 sort:stars` | Most-starred repositories for a specific language |
+
+## GraphQL query template
+
+The `gql_format` string used for every request:
+
+```graphql
+query{
+    search(query: "%s", type: REPOSITORY, first:%d %s) {
+      pageInfo { endCursor }
+                edges {
+                    node {
+                        ...on Repository {
+                            id
+                            name
+                            url
+                            forkCount
+                            stargazerCount
+                            owner {
+                                login
+                            }
+                            description
+                            pushedAt
+                            primaryLanguage {
+                                name
+                            }
+                            openIssues: issues(states: OPEN) {
+                                totalCount
+                            }
+                        }
+                    }
+                }
+            }
+        }
+```
+
+The three `%s` / `%d` placeholders are filled in at runtime with the search string, page size, and pagination cursor.
+
+## Pagination
+
+Each category is fetched in multiple pages using cursor-based pagination. The `get_repos()` method in `process.py` loops `bulk_count` times, passing the `endCursor` from each response as the `after` argument to the next request:
+
+```python
+def get_repos(self, qql):
+    cursor = ''
+    repos = []
+    for i in range(0, self.bulk_count):
+        repos_gql = get_graphql_data(qql % cursor)
+        cursor = ', after:"' + repos_gql["data"]["search"]["pageInfo"]["endCursor"] + '"'
+        repos += self.parse_gql_result(repos_gql)
+    return repos
+```
+
+With the default settings of `bulk_size = 50` and `bulk_count = 2`, each category returns **100 repositories** across 2 pages.
+
+## Retry logic
+
+`get_graphql_data()` in `common.py` retries failed requests up to **5 times**, sleeping 2 seconds between each attempt:
+
+```python
+def get_graphql_data(GQL):
+    access_token = get_access_token()
+    headers = {
+        'Authorization': 'bearer {}'.format(access_token),
+    }
+    s = requests.session()
+    s.keep_alive = False
+    graphql_api = "https://api.github.com/graphql"
+    for _ in range(5):
+        time.sleep(2)  # not get so fast
+        try:
+            r = requests.post(url=graphql_api, json={"query": GQL}, headers=headers, timeout=30)
+            if r.status_code != 200:
+                print(f'Can not retrieve from {GQL}. Response status is {r.status_code}, content is {r.content}.')
+            else:
+                return r.json()
+        except Exception as e:
+            print(e)
+            time.sleep(5)
+```
+
+If all 5 attempts fail for a given request, the function returns `None` and the script will raise an exception when trying to parse the result.

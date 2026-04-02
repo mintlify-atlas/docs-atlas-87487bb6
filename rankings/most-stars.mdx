@@ -1,0 +1,35 @@
+---
+title: 'Most Stars'
+description: 'The top 100 most-starred GitHub repositories across all programming languages.'
+---
+
+The Most Stars ranking tracks the 100 most-starred repositories on GitHub, regardless of programming language. Rankings are determined by total stargazer count and are refreshed automatically.
+
+## GraphQL query
+
+Data is retrieved using the GitHub GraphQL API v4 with the following search query:
+
+```graphql
+stars:>1000 sort:stars
+```
+
+This returns repositories with more than 1,000 stars, sorted in descending order by star count. Results are fetched in two batches of 50 for a total of 100 repositories.
+
+## Top 10
+
+| Ranking | Project Name | Stars | Forks | Language | Open Issues | Description | Last Commit |
+| ------- | ------------ | ----- | ----- | -------- | ----------- | ----------- | ----------- |
+| 1 | [build-your-own-x](https://github.com/codecrafters-io/build-your-own-x) | 485430 | 45661 | Markdown | 244 | Master programming by recreating your favorite technologies from scratch. | 2026-02-21T09:34:54Z |
+| 2 | [awesome](https://github.com/sindresorhus/awesome) | 450936 | 33887 | None | 18 | 😎 Awesome lists about all kinds of interesting topics | 2026-04-01T08:25:16Z |
+| 3 | [freeCodeCamp](https://github.com/freeCodeCamp/freeCodeCamp) | 440431 | 43950 | TypeScript | 118 | freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming, and computer science for free. | 2026-04-01T21:14:53Z |
+| 4 | [public-apis](https://github.com/public-apis/public-apis) | 418205 | 45427 | Python | 3 | A collective list of free APIs | 2026-03-18T16:28:22Z |
+| 5 | [free-programming-books](https://github.com/EbookFoundation/free-programming-books) | 384833 | 66079 | Python | 35 | :books: Freely available programming books | 2026-03-31T21:15:26Z |
+| 6 | [developer-roadmap](https://github.com/kamranahmedse/developer-roadmap) | 352023 | 43864 | TypeScript | 0 | Interactive roadmaps, guides and other educational content to help developers grow in their careers. | 2026-04-01T11:07:26Z |
+| 7 | [openclaw](https://github.com/openclaw/openclaw) | 344849 | 68469 | TypeScript | 10352 | Your own personal AI assistant. Any OS. Any Platform. The lobster way. 🦞 | 2026-04-02T04:01:20Z |
+| 8 | [system-design-primer](https://github.com/donnemartin/system-design-primer) | 340960 | 55149 | Python | 246 | Learn how to design large-scale systems. Prep for the system design interview. Includes Anki flashcards. | 2026-03-20T01:52:19Z |
+| 9 | [coding-interview-university](https://github.com/jwasham/coding-interview-university) | 340065 | 81831 | None | 73 | A complete computer science study plan to become a software engineer. | 2025-08-28T14:42:47Z |
+| 10 | [awesome-python](https://github.com/vinta/awesome-python) | 290170 | 27552 | Python | 0 | An opinionated list of Python frameworks, libraries, tools, and resources | 2026-04-02T01:48:01Z |
+
+<Note>
+  The full Top 100 list is available in the repository: [Top-100-stars.md](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Top-100-stars.md)
+</Note>

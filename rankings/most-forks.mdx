@@ -1,0 +1,35 @@
+---
+title: 'Most Forks'
+description: 'The top 100 most-forked GitHub repositories across all programming languages.'
+---
+
+The Most Forks ranking tracks the 100 most-forked repositories on GitHub, regardless of programming language. Rankings are determined by total fork count and are refreshed automatically.
+
+## GraphQL query
+
+Data is retrieved using the GitHub GraphQL API v4 with the following search query:
+
+```graphql
+forks:>1000 sort:forks
+```
+
+This returns repositories with more than 1,000 forks, sorted in descending order by fork count. Results are fetched in two batches of 50 for a total of 100 repositories.
+
+## Top 10
+
+| Ranking | Project Name | Stars | Forks | Language | Open Issues | Description | Last Commit |
+| ------- | ------------ | ----- | ----- | -------- | ----------- | ----------- | ----------- |
+| 1 | [datasharing](https://github.com/jtleek/datasharing) | 6716 | 242859 | None | 308 | The Leek group guide to data sharing | 2024-08-07T08:29:32Z |
+| 2 | [Spoon-Knife](https://github.com/octocat/Spoon-Knife) | 13707 | 156805 | HTML | 2656 | This repo is for demonstration purposes only. | 2024-08-21T15:25:42Z |
+| 3 | [ProgrammingAssignment2](https://github.com/rdpeng/ProgrammingAssignment2) | 884 | 143785 | R | 202 | Repository for Programming Assignment 2 for R Programming on Coursera | 2024-08-14T21:14:33Z |
+| 4 | [claw-code](https://github.com/ultraworkers/claw-code) | 127462 | 101935 | Rust | 0 | The fastest repo in history to surpass 100K stars ⭐. Better Harness Tools that make real things done. Built in Rust using oh-my-codex. | 2026-04-02T00:06:12Z |
+| 5 | [first-contributions](https://github.com/firstcontributions/first-contributions) | 53268 | 100560 | None | 39 | 🚀✨ Help beginners to contribute to open source projects | 2026-04-02T02:38:40Z |
+| 6 | [css-exercises](https://github.com/TheOdinProject/css-exercises) | 2615 | 89738 | HTML | 0 | None | 2026-03-23T00:26:32Z |
+| 7 | [SmartThingsPublic](https://github.com/SmartThingsCommunity/SmartThingsPublic) | 2636 | 87665 | Groovy | 72 | SmartThings open-source DeviceType Handlers and SmartApps code | 2023-07-18T18:42:27Z |
+| 8 | [Complete-Python-3-Bootcamp](https://github.com/Pierian-Data/Complete-Python-3-Bootcamp) | 29475 | 87484 | Jupyter Notebook | 151 | Course Files for Complete Python 3 Bootcamp Course on Udemy | 2025-06-24T04:54:16Z |
+| 9 | [gitignore](https://github.com/github/gitignore) | 173240 | 82713 | None | 0 | A collection of useful .gitignore templates | 2026-02-12T17:50:51Z |
+| 10 | [coding-interview-university](https://github.com/jwasham/coding-interview-university) | 340065 | 81831 | None | 73 | A complete computer science study plan to become a software engineer. | 2025-08-28T14:42:47Z |
+
+<Note>
+  The full Top 100 list is available in the repository: [Top-100-forks.md](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Top-100-forks.md)
+</Note>

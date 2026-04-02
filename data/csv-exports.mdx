@@ -1,0 +1,72 @@
+---
+title: 'CSV Exports'
+description: 'Every daily run saves a ranked snapshot of GitHub repositories to a CSV file in the Data/ directory.'
+---
+
+Every time the pipeline runs, it saves a full snapshot of all ranked repositories to a CSV file in the `Data/` directory. These files accumulate daily, giving you a machine-readable history of GitHub repository rankings.
+
+## File naming
+
+Files follow the convention:
+
+```
+Data/github-ranking-YYYY-MM-DD.csv
+```
+
+The date is determined by `datetime.utcnow().strftime("%Y-%m-%d")` at the time the pipeline runs (`process.py`, `save_to_csv()`), so the filename reflects the UTC date of collection.
+
+**Example:** `Data/github-ranking-2026-04-02.csv`
+
+## What the CSV contains
+
+Each CSV file contains all ranked repositories across every category in a single flat file. That means one file holds:
+
+- The top 100 repositories by stars (globally)
+- The top 100 repositories by forks (globally)
+- The top 100 repositories by stars for each of the 34 tracked languages
+
+With 36 categories × up to 100 rows each, a single file contains up to 3,600 rows.
+
+## Columns
+
+| Column | Type | Description |
+| --- | --- | --- |
+| `rank` | integer | Position within the category (1–100) |
+| `item` | string | Category identifier (see below) |
+| `repo_name` | string | Repository name without owner |
+| `stars` | integer | Total star count at time of collection |
+| `forks` | integer | Total fork count at time of collection |
+| `language` | string | Primary language as reported by GitHub |
+| `repo_url` | string | Full GitHub URL |
+| `username` | string | Repository owner or organization login |
+| `issues` | integer | Number of open issues at time of collection |
+| `last_commit` | string | ISO 8601 timestamp of the most recent push |
+| `description` | string | Repository description (may be null) |
+
+## The `item` column
+
+The `item` column identifies which ranking category a row belongs to:
+
+- `top-100-stars` — global top 100 by stars
+- `top-100-forks` — global top 100 by forks
+- A language name (e.g., `Python`, `JavaScript`, `Go`, `Rust`, `TypeScript`) — top 100 by stars for that language
+
+The full list of language values: `ActionScript`, `C`, `CSharp`, `CPP`, `Clojure`, `CoffeeScript`, `CSS`, `Dart`, `DM`, `Elixir`, `Go`, `Groovy`, `Haskell`, `HTML`, `Java`, `JavaScript`, `Julia`, `Kotlin`, `Lua`, `MATLAB`, `Objective-C`, `Perl`, `PHP`, `PowerShell`, `Python`, `R`, `Ruby`, `Rust`, `Scala`, `Shell`, `Swift`, `TeX`, `TypeScript`, `Vim-script`.
+
+## Example rows
+
+```csv
+rank,item,repo_name,stars,forks,language,repo_url,username,issues,last_commit,description
+1,top-100-stars,build-your-own-x,485430,45661,Markdown,https://github.com/codecrafters-io/build-your-own-x,codecrafters-io,244,2026-02-21T09:34:54Z,Master programming by recreating your favorite technologies from scratch.
+1,Python,cpython,65271,31157,Python,https://github.com/python/cpython,python,8049,2026-04-02T00:12:44Z,The Python programming language
+```
+
+## Accessing the data
+
+All CSV files are committed to the repository and browsable on GitHub:
+
+[View the Data/ directory on GitHub](https://github.com/EvanLi/Github-Ranking/tree/master/Data)
+
+<Tip>
+  Because snapshots go back to December 2018, this dataset is well suited for long-term trend analysis — tracking which repositories gained or lost stars over the years, how language popularity has shifted, or how the forks-to-stars ratio has changed for major projects.
+</Tip>

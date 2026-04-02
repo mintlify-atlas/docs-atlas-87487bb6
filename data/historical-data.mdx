@@ -1,0 +1,73 @@
+---
+title: 'Historical Data'
+description: 'Daily CSV snapshots collected since December 2018, enabling long-term trend analysis of GitHub repository rankings.'
+---
+
+The `Data/` directory contains daily CSV snapshots of GitHub rankings going back to **December 18, 2018**. With over 2,300 files and counting, this dataset lets you track how repositories and languages have risen and fallen in popularity over years.
+
+## Coverage
+
+- **Start date:** 2018-12-18
+- **Frequency:** One file per day (with gaps on some dates where the pipeline did not run)
+- **File count:** 2,300+ files as of early 2026
+
+Each file is a complete snapshot of all ranked repositories on that date. See [CSV Exports](/data/csv-exports) for the column schema.
+
+## Use cases
+
+- Track how a repository's star count grew over time
+- Identify which languages gained or lost popularity
+- Find when a project first entered the top 100
+- Compare forks-to-stars ratios across years
+- Build visualizations from raw ranking data
+
+## Loading data with pandas
+
+The pipeline itself uses [pandas](https://pandas.pydata.org/), so it is a natural choice for exploring the data.
+
+### Load a single day
+
+```python
+import pandas as pd
+
+df = pd.read_csv('Data/github-ranking-2024-01-01.csv')
+
+# Filter to Python top 100
+python_df = df[df['item'] == 'Python']
+print(python_df[['rank', 'repo_name', 'stars']].to_string())
+```
+
+### Compare two dates
+
+```python
+import pandas as pd
+
+df_2022 = pd.read_csv('Data/github-ranking-2022-01-01.csv')
+df_2024 = pd.read_csv('Data/github-ranking-2024-01-01.csv')
+
+# Compare top stars
+stars_2022 = df_2022[df_2022['item'] == 'top-100-stars'][['repo_name', 'stars']]
+stars_2024 = df_2024[df_2024['item'] == 'top-100-stars'][['repo_name', 'stars']]
+```
+
+### Load all available snapshots
+
+```python
+import pandas as pd
+import glob
+
+files = sorted(glob.glob('Data/github-ranking-*.csv'))
+frames = []
+for f in files:
+    df = pd.read_csv(f)
+    # Extract date from filename
+    date = f.split('github-ranking-')[1].replace('.csv', '')
+    df['date'] = date
+    frames.append(df)
+
+history = pd.concat(frames, ignore_index=True)
+```
+
+<Note>
+  Data collection started on 2018-12-18. Some dates are missing due to gaps in pipeline execution. Always check that the file for a specific date exists before loading it.
+</Note>

@@ -1,0 +1,69 @@
+{
+  "projectType": "data-platform",
+  "projectName": "GitHub Ranking",
+  "projectDescription": "A daily auto-updated ranking list of the most-starred and most-forked GitHub repositories, broken down by programming language, powered by the GitHub GraphQL API.",
+  "theme": "luma",
+  "primaryColor": "#1179d6",
+  "lightColor": "#7bb4ea",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "how-it-works"
+            ]
+          },
+          {
+            "group": "Rankings",
+            "pages": [
+              "rankings/overview",
+              "rankings/most-stars",
+              "rankings/most-forks",
+              "rankings/by-language"
+            ]
+          },
+          {
+            "group": "Data & History",
+            "pages": [
+              "data/csv-exports",
+              "data/historical-data",
+              "data/data-schema"
+            ]
+          },
+          {
+            "group": "Self-Hosting",
+            "pages": [
+              "self-hosting/setup",
+              "self-hosting/automation",
+              "self-hosting/github-api"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Top 100 most-starred repositories across 34 programming languages",
+    "Top 100 most-forked repositories globally",
+    "Daily automatic updates via cron + GitHub Actions",
+    "GitHub GraphQL API v4 integration with pagination support",
+    "Historical daily CSV snapshots dating back to 2018",
+    "Markdown output for README and per-language Top100 files",
+    "Covers 34 languages including Python, JavaScript, Go, Rust, TypeScript, and more"
+  ],
+  "publicApiSurface": [
+    "ProcessorGQL.get_all_repos() — fetches stars, forks, and per-language repo lists via GraphQL",
+    "ProcessorGQL.get_repos(gql) — paginates through GitHub GraphQL search results",
+    "ProcessorGQL.parse_gql_result(result) — parses raw GraphQL response into repo dicts",
+    "WriteFile.write_readme_lang_md() — generates README.md and Top100/*.md markdown files",
+    "WriteFile.save_to_csv() — saves all ranking data to a dated CSV in Data/",
+    "get_graphql_data(GQL) — low-level GraphQL POST wrapper with retry logic",
+    "write_ranking_repo(file, method, repos) — writes a markdown ranking table to a file",
+    "auto_run.sh — shell script for cron-based daily execution and git push"
+  ]
+}

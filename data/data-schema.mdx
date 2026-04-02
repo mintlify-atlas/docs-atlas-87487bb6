@@ -1,0 +1,88 @@
+---
+title: 'Data Schema'
+description: 'Field-by-field reference for the CSV and markdown table output produced by the Github-Ranking pipeline.'
+---
+
+The pipeline produces two output formats — CSV files and markdown tables — that share the same underlying data. This page documents every field in both formats.
+
+## CSV columns
+
+These columns appear in every `Data/github-ranking-YYYY-MM-DD.csv` file, in this order:
+
+<ResponseField name="rank" type="integer" required>
+  Position within the ranking category. Values range from 1 to 100.
+</ResponseField>
+
+<ResponseField name="item" type="string" required>
+  Category identifier for the row. One of:
+
+  - `top-100-stars` — global top 100 repositories by star count
+  - `top-100-forks` — global top 100 repositories by fork count
+  - A language name such as `Python`, `JavaScript`, `Go`, `Rust`, `TypeScript`, etc. — top 100 repositories by stars for that language
+
+  See [CSV Exports](/data/csv-exports) for the full list of language values.
+</ResponseField>
+
+<ResponseField name="repo_name" type="string" required>
+  Repository name without the owner prefix. For example, `react` rather than `facebook/react`. Use `repo_url` or `username` to reconstruct the full path.
+</ResponseField>
+
+<ResponseField name="stars" type="integer" required>
+  Total GitHub star count at the time of data collection. This is a point-in-time snapshot, not a cumulative total.
+</ResponseField>
+
+<ResponseField name="forks" type="integer" required>
+  Total GitHub fork count at the time of data collection.
+</ResponseField>
+
+<ResponseField name="language" type="string">
+  Primary programming language as reported by GitHub (`primaryLanguage.name` from the GraphQL API). This reflects GitHub's own language detection and may differ from the `item` category. Can be `null` if GitHub has not detected a primary language for the repository.
+</ResponseField>
+
+<ResponseField name="repo_url" type="string" required>
+  Full GitHub URL of the repository. Example: `https://github.com/facebook/react`
+</ResponseField>
+
+<ResponseField name="username" type="string" required>
+  Login name of the repository owner or organization. For example, `facebook` for `https://github.com/facebook/react`.
+</ResponseField>
+
+<ResponseField name="issues" type="integer" required>
+  Number of open issues at the time of data collection, as returned by the GitHub GraphQL API (`issues(states: OPEN).totalCount`).
+</ResponseField>
+
+<ResponseField name="last_commit" type="string" required>
+  ISO 8601 timestamp of the most recent push to the repository (`pushedAt` from the GitHub GraphQL API). Example: `2024-01-15T10:30:00Z`
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Repository description as set by the owner on GitHub. Can be `null` if no description has been set.
+</ResponseField>
+
+## Markdown table columns
+
+The markdown files in `Top100/` and `README.md` use the same data with different column headings:
+
+| Markdown heading | Corresponding CSV column |
+| --- | --- |
+| `Ranking` | `rank` |
+| `Project Name` | `repo_name` (rendered as a link using `repo_url`) |
+| `Stars` | `stars` |
+| `Forks` | `forks` |
+| `Language` | `language` |
+| `Open Issues` | `issues` |
+| `Description` | `description` |
+| `Last Commit` | `last_commit` |
+
+The markdown output does not include `item`, `repo_url`, or `username` as standalone columns. The project name cell combines `repo_name` and `repo_url` into a Markdown hyperlink.
+
+## Null values
+
+<Warning>
+  Two fields can be `null` (CSV) or empty (markdown):
+
+  - **`description`** — repositories with no description set on GitHub
+  - **`language`** — repositories where GitHub has not detected a primary language (common for documentation, config, or data repositories)
+
+  Always handle these cases when processing the data programmatically.
+</Warning>

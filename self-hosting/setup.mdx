@@ -1,0 +1,90 @@
+---
+title: "Setup"
+description: "Run the GitHub Ranking pipeline on your own machine with your own GitHub access token."
+---
+
+Follow these steps to clone the repository, install dependencies, and run the ranking script locally.
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/EvanLi/Github-Ranking.git
+    cd Github-Ranking
+    ```
+  </Step>
+
+  <Step title="Install Python dependencies">
+    The project requires two packages pinned to specific versions:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+    **`requirements.txt`**
+
+    ```text
+    pandas==0.24.1
+    requests==2.27.1
+    ```
+  </Step>
+
+  <Step title="Create an access token file">
+    Create a file named `access_token.txt` in the **repo root** (not inside `source/`) and paste your GitHub Personal Access Token into it:
+
+    ```bash
+    echo "ghp_your_token_here" > access_token.txt
+    ```
+
+    The script reads this file via `get_access_token()` in `source/common.py`:
+
+    ```python
+    def get_access_token():
+        with open('../access_token.txt', 'r') as f:
+            access_token = f.read().strip()
+        return access_token
+    ```
+
+    The path `../access_token.txt` is relative to the `source/` directory, which is where the script changes to at startup (see below).
+
+    <Note>
+      The script only reads public repository data via the GraphQL API. A Personal Access Token with no additional scopes is sufficient for querying public repositories.
+    </Note>
+  </Step>
+
+  <Step title="Run the script">
+    ```bash
+    python source/process.py
+    ```
+
+    At startup, `run_by_gql()` in `process.py` changes the working directory to `source/` so that all relative file paths resolve correctly:
+
+    ```python
+    def run_by_gql():
+        ROOT_PATH = os.path.abspath(os.path.join(__file__, "../../"))
+        os.chdir(os.path.join(ROOT_PATH, 'source'))
+    ```
+
+    The script then fetches repositories in three passes: most stars globally, most forks globally, and top stars for each of the 34 tracked languages.
+  </Step>
+
+  <Step title="Check the output">
+    After a successful run, the following files are created or updated:
+
+    | File | Contents |
+    |------|----------|
+    | `README.md` | Top 10 repositories per category with a table of contents |
+    | `Top100/*.md` | Full top-100 lists per category (e.g., `Top100/Python.md`) |
+    | `Data/github-ranking-YYYY-MM-DD.csv` | All results for the day in a single CSV snapshot |
+  </Step>
+</Steps>
+
+## Pagination settings
+
+The `ProcessorGQL` class controls how many results are fetched per category:
+
+```python
+self.bulk_size = 50   # results per page
+self.bulk_count = 2   # pages fetched per query
+```
+
+With these defaults, each category fetches **100 results total** (2 pages × 50 per page). Increase `bulk_count` to retrieve more results, keeping in mind the [GraphQL rate limit](/self-hosting/github-api) of 5,000 points per hour.

@@ -1,0 +1,85 @@
+---
+title: 'Rankings by language'
+description: 'The top 100 most-starred GitHub repositories for each of 34 tracked programming languages.'
+---
+
+Language rankings track the 100 most-starred repositories for each of 34 programming languages. Each language uses a dedicated query scoped to that language and ranked by star count.
+
+## GraphQL query
+
+Data is retrieved using the GitHub GraphQL API v4. For each language, the search query follows this pattern:
+
+```graphql
+language:{lang} stars:>0 sort:stars
+```
+
+For example, to retrieve the top Python repositories:
+
+```graphql
+language:Python stars:>0 sort:stars
+```
+
+Results are fetched in two batches of 50 for a total of 100 repositories per language.
+
+## Languages
+
+<AccordionGroup>
+  <Accordion title="A – D">
+
+| Language | Top 100 list |
+| -------- | ------------ |
+| ActionScript | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/ActionScript.md) |
+| C | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/C.md) |
+| C# | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/CSharp.md) |
+| C++ | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/CPP.md) |
+| Clojure | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Clojure.md) |
+| CoffeeScript | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/CoffeeScript.md) |
+| CSS | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/CSS.md) |
+| Dart | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Dart.md) |
+| DM | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/DM.md) |
+
+  </Accordion>
+  <Accordion title="E – K">
+
+| Language | Top 100 list |
+| -------- | ------------ |
+| Elixir | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Elixir.md) |
+| Go | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Go.md) |
+| Groovy | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Groovy.md) |
+| Haskell | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Haskell.md) |
+| HTML | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/HTML.md) |
+| Java | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Java.md) |
+| JavaScript | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/JavaScript.md) |
+| Julia | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Julia.md) |
+| Kotlin | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Kotlin.md) |
+
+  </Accordion>
+  <Accordion title="L – P">
+
+| Language | Top 100 list |
+| -------- | ------------ |
+| Lua | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Lua.md) |
+| MATLAB | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/MATLAB.md) |
+| Objective-C | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Objective-C.md) |
+| Perl | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Perl.md) |
+| PHP | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/PHP.md) |
+| PowerShell | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/PowerShell.md) |
+
+  </Accordion>
+  <Accordion title="R – Z">
+
+| Language | Top 100 list |
+| -------- | ------------ |
+| Python | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Python.md) |
+| R | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/R.md) |
+| Ruby | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Ruby.md) |
+| Rust | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Rust.md) |
+| Scala | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Scala.md) |
+| Shell | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Shell.md) |
+| Swift | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Swift.md) |
+| TeX | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/TeX.md) |
+| TypeScript | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/TypeScript.md) |
+| Vim script | [View Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Vim-script.md) |
+
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,60 @@
+---
+title: "GitHub Ranking"
+description: "The most comprehensive daily-updated ranking of GitHub repositories by stars and forks, covering 34 programming languages."
+---
+
+GitHub Ranking is an open-source data platform that automatically collects and publishes the most-starred and most-forked repositories on GitHub. Updated daily using the GitHub GraphQL API, it tracks 34 programming languages and maintains historical CSV snapshots going back to 2018.
+
+<CardGroup cols={2}>
+  <Card title="How it works" icon="gears" href="/how-it-works">
+    Understand the data pipeline: how repos are fetched, ranked, and published daily
+  </Card>
+  <Card title="Browse rankings" icon="trophy" href="/rankings/overview">
+    Explore top repositories by stars, forks, and programming language
+  </Card>
+  <Card title="Download data" icon="download" href="/data/csv-exports">
+    Access historical CSV snapshots dating back to December 2018
+  </Card>
+  <Card title="Run it yourself" icon="server" href="/self-hosting/setup">
+    Self-host the ranking pipeline with your own GitHub access token
+  </Card>
+</CardGroup>
+
+## What's tracked
+
+GitHub Ranking fetches the **Top 100** repositories for each category:
+
+- **Most Stars** — the most-starred repositories across all languages
+- **Most Forks** — the most-forked repositories across all languages
+- **34 Language Rankings** — including Python, JavaScript, TypeScript, Go, Rust, Java, C, C++, and more
+
+<Info>
+  Rankings are updated automatically every day. The last update timestamp is displayed at the top of the [README](https://github.com/EvanLi/Github-Ranking).
+</Info>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Daily auto-updates" icon="rotate">
+    Cron job runs `process.py` daily and commits updated rankings to the repository
+  </Card>
+  <Card title="GitHub GraphQL API v4" icon="code">
+    Uses GraphQL for efficient, paginated queries — up to 100 results per request
+  </Card>
+  <Card title="34 language categories" icon="language">
+    ActionScript, C, C#, C++, Clojure, Go, Java, JavaScript, Python, Rust, TypeScript, and many more
+  </Card>
+  <Card title="Historical CSV data" icon="table">
+    Every daily snapshot is saved as a CSV file in the `Data/` directory since December 2018
+  </Card>
+</CardGroup>
+
+## Quick links
+
+| Resource | Description |
+|----------|-------------|
+| [Top 100 Stars](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Top-100-stars.md) | Most-starred repositories on GitHub |
+| [Top 100 Forks](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Top-100-forks.md) | Most-forked repositories on GitHub |
+| [Python Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Python.md) | Top Python repositories by stars |
+| [JavaScript Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/JavaScript.md) | Top JavaScript repositories by stars |
+| [Go Top 100](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Go.md) | Top Go repositories by stars |
